@@ -1,16 +1,18 @@
-Sure, I will write a Python function for your requirement.
+Here's a Python function that prints the Fibonacci series up to a given number.
 
 ```python
 def print_fibonacci(n):
-    # variable initialization
-    a, b = 0, 1
-    
+    a, b = 0, 1  # fibonacci initial two numbers
+
     while a < n:
         print(a, end=' ')
-        a, b = b, a+b # update values
+        a, b = b, a+b  # generate next fibonacci number
 
-# test the function
-print_fibonacci(50)
+    print()  # print newline
+
+print_fibonacci(100)
 ```
 
-This function will print all the Fibonacci numbers less than the given number. For example, when it is 50, the function will print: 0 1 1 2 3 5 8 13 21 34
+When you run this program, it outputs the Fibonacci numbers that are less than the input number (in this case, 100).
+
+Remember that the Fibonacci series is a sequence of numbers in which each number is the sum of the two preceding ones, usually starting with 0 and 1.
