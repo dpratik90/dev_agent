@@ -3,6 +3,42 @@ from .task import Task
 
 class TaskManager:
     def __init__(self):
+        self.tasks = {}
+
+    def add_task(self, id, title, description, due_date, status, priority):
+        if id not in self.tasks:
+            task = Task(title, description, due_date, status, priority)
+            self.tasks[id] = task
+        else:
+            return 'ID already exists'
+
+    def remove_task(self, id):
+        if id in self.tasks:
+            del self.tasks[id]
+        else:
+            return 'Task ID not found'
+
+    def update_task(self, id, **kwargs):
+        if id in self.tasks:
+            task = self.tasks[id]
+            for key, value in kwargs.items():
+                if hasattr(task, key):
+                    setattr(task, key, value)
+        else:
+            return 'Task ID not found'
+
+    def list_tasks(self):
+        return [task.__dict__ for task in self.tasks.values()]
+
+    def filter_tasks(self, by, value):
+        try:
+            return [task.__dict__ for task in self.tasks.values() if getattr(task, by) == value]
+        except AttributeError:
+            return 'Invalid attribute'
+
+
+class TaskManager:
+    def __init__(self):
         self.tasks = []
 
     def add_task(self, id, title, description, due_date, status, priority):
