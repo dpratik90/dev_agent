@@ -20,28 +20,19 @@ class TaskManager:
         self.tasks.append(new_task)
 
     def remove_task(self, title):
-        for task in self.tasks:
-            if task.title == title:
-                self.tasks.remove(task)
+        self.tasks = [task for task in self.tasks if task.title != title]
 
-    def update_task(self, title, attribute, new_value):
+    def update_task(self, title, **kwargs):
         for task in self.tasks:
             if task.title == title:
-                if attribute == 'title':
-                    task.title = new_value
-                elif attribute == 'description':
-                    task.description = new_value
-                elif attribute == 'due_date':
-                    task.due_date = new_value
-                elif attribute == 'status':
-                    task.status = new_value
-                elif attribute == 'priority':
-                    task.priority = new_value
+                for key, value in kwargs.items():
+                    setattr(task, key, value)
 
     def list_tasks(self):
-        for task in self.tasks:
-            print(f"Title: {task.title}, Description: {task.description}, Due date: {task.due_date}, Status: {task.status}, Priority: {task.priority}")
+        return self.tasks
 
-    def filter_tasks(self, attribute, value):
-        filtered_tasks = [task for task in self.tasks if getattr(task, attribute) == value]
-        return filtered_tasks
+    def filter_by_status(self, status):
+        return [task for task in self.tasks if task.status == status]
+
+    def filter_by_priority(self, priority):
+        return [task for task in self.tasks if task.priority == priority]
