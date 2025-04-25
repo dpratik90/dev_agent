@@ -8,7 +8,7 @@ class PhoneFormatter:
             return False
         pattern = re.compile(r"^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$")
         return pattern.match(self.__phone_number) is not None
-import re
+Remove duplicate import line
 class PhoneFormatter:
     def __init__(self, phone_number):
         self.__phone_number = phone_number
