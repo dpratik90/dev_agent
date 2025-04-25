@@ -1,4 +1,43 @@
-from .task import Task\n\nclass TaskManager:\n    def __init__(self):\n        self.tasks = {}\n\n    def add_task(self, id, title, description, due_date, status, priority):\n        if id not in self.tasks:\n            task = Task(id, title, description, due_date, status, priority)\n            self.tasks[id] = task\n            return 'Task added successfully'\n        else:\n            return 'Task ID already exists'\n\n    def remove_task(self, id):\n        if id in self.tasks:\n            del self.tasks[id]\n            return 'Task removed successfully'\n        else:\n            return 'Task ID not found'\n\n    def update_task(self, id, **kwargs):\n        if id in self.tasks:\n            task = self.tasks[id]\n            for key, value in kwargs.items():\n                if hasattr(task, key):\n                    setattr(task, key, value)\n            return 'Task updated successfully'\n        else:\n            return 'Task ID not found'\n\n    def list_tasks(self):\n        return [task.__dict__ for task in self.tasks.values()]\n\n    def filter_tasks(self, by, value):\n        try:\n            return [task.__dict__ for task in self.tasks.values() if getattr(task, by) == value]\n        except AttributeError:\n            return 'Invalid attribute'
+from .task import Task
+
+
+class TaskManager:
+    def __init__(self):
+        self.tasks = {}
+
+    def add_task(self, id, title, description, due_date, status, priority):
+        if id not in self.tasks:
+            task = Task(id, title, description, due_date, status, priority)
+            self.tasks[id] = task
+            return 'Task added successfully'
+        else:
+            return 'Task ID already exists'
+
+    def remove_task(self, id):
+        if id in self.tasks:
+            del self.tasks[id]
+            return 'Task removed successfully'
+        else:
+            return 'Task ID not found'
+
+    def update_task(self, id, **kwargs):
+        if id in self.tasks:
+            task = self.tasks[id]
+            for key, value in kwargs.items():
+                if hasattr(task, key):
+                    setattr(task, key, value)
+            return 'Task updated successfully'
+        else:
+            return 'Task ID not found'
+
+    def list_tasks(self):
+        return [task.__dict__ for task in self.tasks.values()]
+
+    def filter_tasks(self, by, value):
+        try:
+            return [task.__dict__ for task in self.tasks.values() if getattr(task, by) == value]
+        except AttributeError:
+            return 'Invalid attribute'
 
 
 class TaskManager:
