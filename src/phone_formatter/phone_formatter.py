@@ -8,7 +8,20 @@ class PhoneFormatter:
             return False
         pattern = re.compile(r"^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$")
         return pattern.match(self.__phone_number) is not None
+import re
+class PhoneFormatter:
+    def __init__(self, phone_number):
+        self.__phone_number = phone_number
 
+    def validate(self):
+        if not isinstance(self.__phone_number, str):
+            return False
+        pattern = re.compile(r"^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$")
+        return pattern.match(self.__phone_number) is not None
+
+    def format(self):
+        digits = re.sub(r"[^\d]", "", self.__phone_number)
+        return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
     def format(self):
         digits = re.sub(r"[^\d]", "", self.__phone_number)
         return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
