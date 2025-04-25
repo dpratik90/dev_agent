@@ -31,7 +31,7 @@ class PhoneFormatter:
 
     def __init__(self, phone_number):
         self.phone_number = phone_number
-
+class PhoneFormatter:\n\n    def __init__(self, phone_number):\n        self.phone_number = phone_number\n\n    def validate(self):\n        if not isinstance(self.phone_number, str):\n            return False\n        pattern = re.compile(r"^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$")\n        return pattern.match(self.phone_number) is not None\n\n    def format(self):\n        digits = re.sub(r"[^\d]", "", self.phone_number)\n        return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
     def validate(self):
         if not isinstance(self.phone_number, str):
             return False
