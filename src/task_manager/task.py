@@ -1,4 +1,15 @@
-class Task:\n    \"\"\"The Task class represents a task with a title, description, due_date, status, and priority.\"\"\"\n    def __init__(self, title: str, description: str, due_date: str, status: str, priority: str) -> None:\n        \"\"\"\n        Initializes the Task with the given title, description, due date, status and priority.\n\n        :param title: The title of the task\n        :param description: A brief description of the task\n        :param due_date: The due date of the task in 'YYYY-MM-DD' format\n        :param status: The status of the task\n        :param priority: The priority of the task\n        \"\"\"\n        self.title = title\n        self.description = description\n        try:\n            self.due_date = datetime.strptime(due_date, '%Y-%m-%d')\n        except ValueError:\n            raise ValueError('Incorrect date format, should be YYYY-MM-DD')\n        self.status = status\n        self.priority = priority
+import datetime
+
+class Task:
+    def __init__(self, title, description, due_date, status, priority):
+        self.title = title
+        self.description = description
+        try:
+            self.due_date = datetime.datetime.strptime(due_date, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError('Incorrect date format, should be YYYY-MM-DD')
+        self.status = status
+        self.priority = priority
 
 class Task:
     """The Task class represents a task with a title, description, due_date, status, and priority."""
