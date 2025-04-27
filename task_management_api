@@ -1,87 +1,126 @@
-Sure, here's a minimal structure for your FastAPI-based Task Management API. I will describe the directory structure and files required for this.
+This is a large project, and coding everything in a single go would be too large for a single response. I'll outline the basic structure of the project. Actual implementation depends heavily on project's specific requirements.
 
-The directory structure should look something like this:
 ```
-/app
-    /models
-        __init__.py
-        task.py
-    /schemas
-        __init__.py
-        task.py
-    /auth
-        __init__.py
-        auth_handler.py
-    /cruds
-        __init__.py
-        task.py
-    /utils
-        __init__.py
-        helpers.py
-    main.py
-    database.py
-    config.py
+/project_root
+  ├── README.md
+  ├── requirements.txt
+  ├── /app
+      ├── __init__.py
+      ├── main.py
+      ├── config.py
+      ├── database.py
+      ├── /auth
+          ├── __init__.py
+          ├── auth_handler.py
+      ├── /schemas
+          ├── __init__.py
+          ├── schemas.py
+      ├── /models
+          ├── __init__.py
+          ├── models.py
+      ├── /cruds
+          ├── __init__.py
+          ├── task.py
+      /utils
+          ├── __init__.py
+          ├── helpers.py
 ```
 
-Each file should be initiated as follows:
+1. requirements.txt:
+```txt
+fastapi
+uvicorn
+sqlalchemy
+alembic
+psycopg2
+pyjwt
+pydantic
+```
 
-main.py
+2. main.py:
 ```python
 from fastapi import FastAPI
-from .database import engine
 from . import models
+from .database import engine
+from .routers import task
 
-models.Base.metadata.create_all(bind=engine)
+app = FastAPI()
 
-app = FastAPI() 
+models.Base.metadata.create_all(engine)
 
-# Include more router, middleware here
+app.include_router(task.router)
 ```
-database.py
+
+3. database.py:
 ```python
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db" 
+SQLALCHEMY_DATABASE_URL = "postgresql://user:password@localhost/dbname"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# use these in further files to work with database
 ```
-config.py
+
+4. models/models.py:
 ```python
-from pydantic import BaseSettings 
-
-class Settings(BaseSettings):
-    app_name: str = "FastAPI Task Management API"
-
-settings = Settings()
-
-#config values can be set and accessed via the "settings" object
-```
-requirements.txt
-```
-fastapi==0.63.0 
-uvicorn==0.14.0 
-sqlalchemy==1.4.15
-pydantic==1.8.2 
-```
-Within your specific model, schema, crud, auth and utils folders, you would implement classes or a series of routes relevant to each respective task. 
-
-For instance, a simple model, task.py located in /app/models might look like:
-```python
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-import datetime
+from sqlalchemy import Column, Integer, String
 from .database import Base
 
 class Task(Base):
     __tablename__ = "tasks"
-
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(String, index=True)
-    created_date = Column(DateTime, default=datetime.datetime.utcnow)
-    is_completed = Column(Boolean, default=False)
 ```
-Remember this is a very basic setup and could require additional setup according to your needs like database configuration, security (CORS, CSRF), etc.
+
+5. schemas/schemas.py:
+```python
+from pydantic import BaseModel
+
+class TaskBase(BaseModel):
+    title: str
+    description: str
+
+class TaskCreate(TaskBase):
+    pass
+
+class Task(TaskBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+```
+
+6. auth/auth_handler.py:
+```python
+# JWT authentication related code
+```
+
+7. cruds/task.py:
+```python
+from sqlalchemy.orm import Session
+from .. import models, schemas
+
+def get_task(db: Session, task_id: int):
+    return db.query(models.Task).filter(models.Task.id == task_id).first()
+    
+# Add more CRUD operations
+```
+
+8. utils/helpers.py:
+```python
+# Helper functions
+```
+
+9. config.py:
+```python
+from pydantic import BaseSettings
+
+class Settings(BaseSettings):
+    database_url: str = "postgresql://user:password@localhost/dbname"
+
+settings = Settings()
+```
+
+Please expand upon each file based on your specific needs. While this project structure and base-code provides a solid starting point, much of the implementation (particularly auth/auth_handler.py and cruds/task.py) will vary significantly based on your specific use-case and requirements. For the JWT authentication, you would implement encoding and decoding of information, as well as including exceptions for incorrect tokens. As for the CRUD operations, include functions for creating, reading, updating, and deleting tasks.
