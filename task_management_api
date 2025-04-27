@@ -1,79 +1,87 @@
-Due to space limitation, comprehensively satisfying your request in one response is not feasible. However, here is a simplified outline for the project. 
+Sure, here's a minimal structure for your FastAPI-based Task Management API. I will describe the directory structure and files required for this.
 
-Let's create a project structure for our Task Management system:
-
-```shell
-/task_management
-    /app
-        /auth
-        /cruds
-        /models
-        /schemas
-        /utils
-        /main.py
-    /tests
-    /docker-compose.yml
-    /requirements.txt
-    /README.md
+The directory structure should look something like this:
+```
+/app
+    /models
+        __init__.py
+        task.py
+    /schemas
+        __init__.py
+        task.py
+    /auth
+        __init__.py
+        auth_handler.py
+    /cruds
+        __init__.py
+        task.py
+    /utils
+        __init__.py
+        helpers.py
+    main.py
+    database.py
+    config.py
 ```
 
-`/app/main.py`
+Each file should be initiated as follows:
 
+main.py
 ```python
 from fastapi import FastAPI
-from app.utils.logging_config import setup_logging
-from app.auth.router import router as auth_router
-from app.cruds.router import router as tasks_router
+from .database import engine
+from . import models
 
+models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI() 
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Task Management System"}
-
-app.include_router(auth_router)
-app.include_router(tasks_router)
-
-setup_logging()
+# Include more router, middleware here
 ```
+database.py
+```python
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-`requirements.txt`
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db" 
 
-```txt
-fastapi
-uvicorn[standard]
-python-multipart
-python-dotenv
-sqlalchemy
-psycopg2-binary
-async-exit-stack
-async-generator
-authlib
-pydantic
-passlib[bcrypt]
-python-jwt
-pytest
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# use these in further files to work with database
 ```
+config.py
+```python
+from pydantic import BaseSettings 
 
-`README.md`
+class Settings(BaseSettings):
+    app_name: str = "FastAPI Task Management API"
 
-```markdown
-# Task Management System
+settings = Settings()
 
-## Install Dependencies
-
-pip install -r requirements.txt
-
-## Start the application
-
-uvicorn app.main:app --reload
-
-## Running Tests
-
-pytest
+#config values can be set and accessed via the "settings" object
 ```
+requirements.txt
+```
+fastapi==0.63.0 
+uvicorn==0.14.0 
+sqlalchemy==1.4.15
+pydantic==1.8.2 
+```
+Within your specific model, schema, crud, auth and utils folders, you would implement classes or a series of routes relevant to each respective task. 
 
-This is just an outline of the project structure and some key components. However, a full project considering the features you asked for would be much more complex, need model definitions, schema definitions, error handler middleware, JWT authentication middleware, CRUD operations for tasks, user registration and login endpoints, due date tracking and status management, and a logging configuration. 
+For instance, a simple model, task.py located in /app/models might look like:
+```python
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+import datetime
+from .database import Base
 
-Given the complexity and scope of your requirements, they would be better addressed as a series of continuous tasks rather than through a single text prompt. You would also need to create some test data as well as unit tests to verify the application functions as intended. In this case, I would recommend referring to the FastAPI documentation, SQLAlchemy documentation and exploring tutorials online or hiring a professional developer if you're not comfortable proceeding on your own.
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(String, index=True)
+    created_date = Column(DateTime, default=datetime.datetime.utcnow)
+    is_completed = Column(Boolean, default=False)
+```
+Remember this is a very basic setup and could require additional setup according to your needs like database configuration, security (CORS, CSRF), etc.
