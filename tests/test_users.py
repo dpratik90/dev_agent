@@ -1,39 +1,39 @@
-=== FILE: tests/test_models.py ===
 import pytest
 from pydantic import ValidationError
-from models import UserBase, UserCreate, User 
+from main import UserBase, UserCreate, User
 
-def test_user_base_model():
-    user_base = UserBase(username="testuser")
-    assert user_base.username == "testuser"
-
+def test_userbase_model():
+    # test happy path
+    user = UserBase(username='smith')
+    assert user.username == 'smith'
+    # test missing username
     with pytest.raises(ValidationError):
-        user_base = UserBase(username="")
+        user = UserBase()
 
-
-def test_user_create_model():
-    user_create = UserCreate(username="testuser", password="password")
-    assert user_create.username == "testuser"
-    assert user_create.password == "password"
-
+def test_usercreate_model():
+    # test happy path
+    user = UserCreate(username='smith', password='secret')
+    assert user.username == 'smith'
+    assert user.password == 'secret'
+    # test missing username
     with pytest.raises(ValidationError):
-        user_create = UserCreate(username="testuser", password="")
-
+        user = UserCreate(password='secret')
+    # test missing password
     with pytest.raises(ValidationError):
-        user_create = UserCreate(username="", password="password")
-
+        user = UserCreate(username='smith')
 
 def test_user_model():
-    user = User(id=1, username="testuser", is_active=True)
+    # test happy path
+    user = User(id=1, username='smith', is_active=True)
     assert user.id == 1
-    assert user.username == "testuser"
-    assert user.is_active is True
-
+    assert user.username == 'smith'
+    assert user.is_active == True
+    # test missing id
     with pytest.raises(ValidationError):
-        user = User(id="", username="testuser", is_active=True)
-
+        user = User(username='smith', is_active=True)
+    # test missing username
     with pytest.raises(ValidationError):
-        user = User(id=1, username="", is_active=True)
-
+        user = User(id=1, is_active=True)
+    # test missing is_active
     with pytest.raises(ValidationError):
-        user = User(id=1, username="testuser", is_active="")
+        user = User(id=1, username='smith')

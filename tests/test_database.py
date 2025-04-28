@@ -1,24 +1,48 @@
-=== FILE: test_db_module.py ===
-import os
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.exc import OperationalError
 
-def test_sqlalchemy_database_url(monkeypatch):
-    monkeypatch.setenv("SQLALCHEMY_DATABASE_URL", "postgresql://test_user:test_password@localhost/test_db")
+from module_to_test import Base, SessionLocal
 
-    assert os.getenv("SQLALCHEMY_DATABASE_URL") == "postgresql://test_user:test_password@localhost/test_db"
+@pytest.fixture(scope="module")
+def test_engine():
+    return create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 
-def test_create_engine():
-    engine = create_engine("postgresql://test_user:test_password@localhost/test_db")
-    assert str(engine.url) == "postgresql://test_user:test_password@localhost/test_db"
+@pytest.fixture(scope="module")
+def test_session_local(test_engine):
+    Base.metadata.create_all(bind=test_engine)
+    new_session = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+    yield new_session
+    Base.metadata.drop_all(bind=test_engine)
 
-def test_session_local():
-    engine = create_engine("postgresql://test_user:test_password@localhost/test_db")
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    assert SessionLocal.kw['bind'] == engine
+def test_session_creation(test_session_local):
+    session = test_session_local()
+    assert session
 
-def test_base():
-    from sqlalchemy.ext.declarative import declarative_base
-    Base = declarative_base()
-    assert Base.metadata.tables == {}
+def test_session_autocommit(test_session_local):
+    session = test_session_local()
+    assert not session.autocommit
+
+def test_session_autoflush(test_session_local):
+    session = test_session_local()
+    assert not session.autoflush
+
+def test_engine_creation(test_engine):
+    assert test_engine
+
+@pytest.mark.parametrize(
+    "database_url", [
+        "postgresql://user:password@localhost/db", 
+        "sqlite:///:memory:", 
+        ""
+    ]
+)
+def test_engine_creation_parameters(database_url):
+    if database_url:
+        engine = create_engine(database_url, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        assert engine
+    else:
+        with pytest.raises(OperationalError):
+            engine = create_engine(database_url, connect_args={"check_same_thread": False}, poolclass=StaticPool)

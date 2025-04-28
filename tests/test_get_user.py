@@ -1,35 +1,35 @@
-=== FILE: tests/test_main.py ===
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from ..main import get_user, app
+from sqlalchemy.orm import Session
 from .. import models, schemas
 
-engine = create_engine("sqlite:///./test.db", echo = True)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def test_get_user(db: Session):
+    # Setup
+    user_id = 1
+    user = models.User(id=user_id, name="Test User")
 
-models.Base.metadata.create_all(bind=engine)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 
-@pytest.fixture(scope="module")
-def test_db_session():
-    db = TestingSessionLocal()
-    yield db
-    db.close()
+    # Test the function
+    result = get_user(db, user_id)
 
-def test_get_user(test_db_session):
-    user1 = schemas.UserBase(username="user1", email="user1@example.com", password="password1")
-    db_user1 = models.User(**user1.dict())
-    test_db_session.add(db_user1)
-    test_db_session.commit()
-    db_user = get_user(test_db_session, db_user1.id)
-    assert db_user.id == db_user1.id
+    assert result.id == user_id
+    assert result.name == "Test User"
 
-def test_get_user_no_user(test_db_session):
-    no_user = get_user(test_db_session, 999)
-    assert no_user is None
+def test_get_user_no_user(db: Session):
+    # Setup
+    user_id = 2
 
-def test_get_user_non_int_id(test_db_session):
+    # Test the function with a non existent user
+    result = get_user(db, user_id)
+
+    assert result is None
+
+def test_get_user_invalid_id(db: Session):
+    # Setup
+    invalid_id = "Invalid"
+
+    # Test the function with an invalid id
     with pytest.raises(TypeError):
-        get_user(test_db_session, "non_int")
+        get_user(db, invalid_id)
