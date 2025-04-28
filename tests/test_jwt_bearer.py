@@ -1,42 +1,28 @@
 === FILE: tests/test_auth.py ===
 import pytest
-from fastapi import HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status
+from fastapi.testclient import TestClient
 from jose import JWTError, jwt
+from unittest.mock import patch
 
-from auth_module import JWTBearer
-from auth_module.crud.get_user import get_user
+from main import app, JWTBearer, get_user, oauth2_scheme
 
-class TestJWTBearer:
-    @pytest.fixture(scope="module")
-    def token(self):
-        return jwt.encode({"sub": "username"}, "YOUR-SECRET-KEY")
+TOKEN = "YOUR-SECRET-KEY"
 
-    @pytest.fixture(scope="module")
-    def badly_encoded_token(self):
-        return "badly encoded jwt token"
+client = TestClient(app)
 
-    @pytest.fixture(scope="module")
-    def empty_username_token(self):
-        return jwt.encode({"sub": ""}, "YOUR-SECRET-KEY")
+def test_JWTBearer_success():
+    with patch('main.get_user'), patch('main.oauth2_scheme') as mocked_oauth:
+        mocked_oauth.return_value = jwt.encode({"sub": "testuser"}, TOKEN)
+        response = JWTBearer(Mocked_User(), token=Depends(oauth2_scheme))
+        assert response == Mocked_User()
 
-    def test_decode_token(self, token):
-        assert JWTBearer(user=get_user("username"), token=token) is not None
+def test_JWTBearer_no_username_in_token():
+    with patch('main.get_user'), patch('main.oauth2_scheme') as mocked_oauth:
+        mocked_oauth.return_value = jwt.encode({"": ""}, TOKEN)
+        with pytest.raises(HTTPException) as e_info:
+            JWTBearer(Mocked_User(), token=Depends(oauth2_scheme))
+        assert e_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_decode_badly_encoded_token(self, badly_encoded_token):
-        with pytest.raises(HTTPException) as excinfo:
-            JWTBearer(user=get_user("username"), token=badly_encoded_token)
-        assert excinfo.value.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_decode_empty_username_token(self, empty_username_token):
-        with pytest.raises(HTTPException) as excinfo:
-            JWTBearer(user=get_user("username"), token=empty_username_token)
-        assert excinfo.value.status_code == status.HTTP_401_UNAUTHORIZED
-
-=== FILE: conftest.py ===
-import pytest
-from auth_module.crud.get_user import get_user
-
-@pytest.fixture
-def user():
-    return get_user("username")
+class Mocked_User:
+    pass

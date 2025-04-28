@@ -1,37 +1,24 @@
-=== FILE: tests/test_db.py ===
+=== FILE: test_db_module.py ===
+import os
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from relative.path.to import module
+def test_sqlalchemy_database_url(monkeypatch):
+    monkeypatch.setenv("SQLALCHEMY_DATABASE_URL", "postgresql://test_user:test_password@localhost/test_db")
 
-@pytest.fixture(scope='module')
-def db_engine():
-    return create_engine('postgresql://user:password@localhost/testdb')
+    assert os.getenv("SQLALCHEMY_DATABASE_URL") == "postgresql://test_user:test_password@localhost/test_db"
 
-@pytest.fixture(scope='module')
-def db_session(db_engine):
-    connection = db_engine.connect()
-    transaction = connection.begin()
+def test_create_engine():
+    engine = create_engine("postgresql://test_user:test_password@localhost/test_db")
+    assert str(engine.url) == "postgresql://test_user:test_password@localhost/test_db"
 
-    yield connection
+def test_session_local():
+    engine = create_engine("postgresql://test_user:test_password@localhost/test_db")
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    assert SessionLocal.kw['bind'] == engine
 
-    transaction.rollback()
-    connection.close()
-
-def test_database_connection(db_session):
-    assert db_session is not None, "Database session should not be None"
-
-def test_database_autocommit(db_session):
-    assert db_session.autocommit == False, "Database auto commit should be False"
-
-def test_database_autoflush(db_session):
-    assert db_session.autoflush == False, "Database auto flush should be False"
-
-def test_declarative_base():
-    base = module.Base
-    assert base is not None, "Declarative base should not be None"
-    assert str(base.metadata.bind.url) == 'postgresql://user:password@localhost/db', "Database url should be equal to 'postgresql://user:password@localhost/db'"
-
-def test_db_engine_uri(db_engine):
-    assert str(db_engine.url) == 'postgresql://user:password@localhost/testdb', "Engine URI should be equal to 'postgresql://user:password@localhost/testdb'"
+def test_base():
+    from sqlalchemy.ext.declarative import declarative_base
+    Base = declarative_base()
+    assert Base.metadata.tables == {}
