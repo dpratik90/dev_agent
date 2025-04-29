@@ -1,23 +1,22 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from .. import schemas, models, utils
 
 router = APIRouter()
 
-@router.post("/")
-async def create_task():
-    pass
+def get_db():
+    db = utils.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-@router.get("/")
-async def read_tasks():
-    pass
+@router.post("/", response_model=schemas.Task)
+def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
+    db_task = models.Task(**task.dict())
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
 
-@router.get("/{task_id}")
-async def read_task(task_id: int):
-    pass
-
-@router.put("/{task_id}")
-async def update_task(task_id: int):
-    pass
-
-@router.delete("/{task_id}")
-async def delete_task(task_id: int):
-    pass
+    return db_task
